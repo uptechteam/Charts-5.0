@@ -334,8 +334,7 @@ open class BarChartRenderer: BarLineScatterCandleBubbleRenderer
 
         let borderWidth = dataSet.barBorderWidth
         let borderColor = dataSet.barBorderColor
-        let drawBorder = borderWidth > 0.0
-        
+
         context.saveGState()
         
         // draw the bar shadow before the values
@@ -399,13 +398,6 @@ open class BarChartRenderer: BarLineScatterCandleBubbleRenderer
                 context.fill(barRect)
             }
         }
-        
-        let isSingleColor = dataSet.colors.count == 1
-        
-        if isSingleColor
-        {
-            context.setFillColor(dataSet.color(atIndex: 0).cgColor)
-        }
 
         // In case the chart is stacked, we need to accomodate individual bars within accessibilityOrdereredElements
         let isStacked = dataSet.isStacked
@@ -424,21 +416,12 @@ open class BarChartRenderer: BarLineScatterCandleBubbleRenderer
             {
                 break
             }
-            
-            if !isSingleColor
-            {
-                // Set the color for the currently drawn value. If the index is out of bounds, reuse colors.
-                context.setFillColor(dataSet.color(atIndex: j).cgColor)
-            }
-            
-            context.fill(barRect)
-            
-            if drawBorder
-            {
-                context.setStrokeColor(borderColor.cgColor)
-                context.setLineWidth(borderWidth)
-                context.stroke(barRect)
-            }
+
+            drawBar(context: context,
+                    barRect: barRect,
+                    color: dataSet.color(atIndex: j).cgColor,
+                    borderColor: borderColor.cgColor,
+                    borderWidth: borderWidth)
 
             // Create and append the corresponding accessibility element to accessibilityOrderedElements
             if let chart = dataProvider as? BarChartView
@@ -457,6 +440,24 @@ open class BarChartRenderer: BarLineScatterCandleBubbleRenderer
         }
         
         context.restoreGState()
+    }
+
+    open func drawBar(
+        context: CGContext,
+        barRect: CGRect,
+        color: CGColor,
+        borderColor: CGColor,
+        borderWidth: CGFloat
+    ) {
+        context.setFillColor(color)
+
+        context.fill(barRect)
+
+        if borderWidth > .zero {
+            context.setStrokeColor(borderColor)
+            context.setLineWidth(borderWidth)
+            context.stroke(barRect)
+        }
     }
     
     open func prepareBarHighlight(
